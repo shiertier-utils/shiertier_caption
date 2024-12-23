@@ -1,3 +1,3 @@
-from .glm4v import GLM4VFlash
+from .glm4v import GLM4VFlash, GLM4VPlus
 
-_all__ = ["GLM4VFlash"]
+__all__ = ["GLM4VFlash", "GLM4VPlus"]

@@ -17,6 +17,7 @@ class GLM4VFlash:
         self, 
         image_path_or_url: str, 
         prompt: str, 
+        temperature: float = 0.8, 
         is_url: bool = False
     ) -> str:
         """
@@ -51,8 +52,9 @@ class GLM4VFlash:
                     {
                         "type": "text",
                         "text": prompt
-                    }
-                ]
+                    },
+                ],
+                "temperature": temperature
             }]
 
             # 发送请求
@@ -82,6 +84,7 @@ class GLM4VPlus:
         self, 
         image_path_or_url: str, 
         prompt: str, 
+        temperature: float = 0.8, 
         is_url: bool = False
     ) -> str:
         """
@@ -117,7 +120,8 @@ class GLM4VPlus:
                         "type": "text",
                         "text": prompt
                     }
-                ]
+                ],
+                'temperature': temperature
             }]
 
             # 发送请求
