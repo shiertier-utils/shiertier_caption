@@ -1,17 +1,17 @@
-# Caption
+# shiertier_caption
 
 一个使用智谱AI GLM4V-Flash模型进行图片描述的Python包。
 
 ## 安装
 
 ```bash
-pip install caption
+pip install shiertier_caption
 ```
 
 ## 使用方法
 
 ```python
-from caption import GLM4VFlash
+from shiertier_caption import GLM4VFlash
 
 # 初始化客户端
 client = GLM4VFlash(api_key="your_api_key")
