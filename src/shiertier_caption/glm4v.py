@@ -102,7 +102,7 @@ Please strictly follow the format below and output only JSON, do not output Pyth
                 ],
                 "temperature": temperature
             }]
-            print(prompt)
+            # print(prompt)
             # 发送请求
             if need_json:
                 response = self.client.chat.completions.create(
