@@ -1,15 +1,18 @@
 from zhipuai import ZhipuAI
-from typing import Optional, Union
+from typing import Optional, Union, List
 import base64
 from .repair_json import try_parse_ast_to_json as repair_json
+import json
+import concurrent.futures
 
 class GLM4V:
-    def __init__(self, api_key: str, model: str = "glm-4v-flash"):
+    def __init__(self, api_key: str, model: str = "glm-4v-plus-0111"):
         """
         初始化 GLM4V-Flash 客户端
         
         Args:
             api_key (str): 智谱 AI 的 API key
+            model (str): 模型名称，默认为 "glm-4v-plus-0111"
         """
         self.client = ZhipuAI(api_key=api_key)
         if model not in ["glm-4v-flash", "glm-4v", "glm-4v-plus", "glm-4v-plus-0111"]:
@@ -117,3 +120,32 @@ Please strictly follow the format below and output only JSON, do not output Pyth
 
         except Exception as e:
             return f"错误：{str(e)}" 
+
+class MultiGLM4V:
+    def __init__(self, api_keys: list[str], max_workers: int = 64, model: str = "glm-4v-plus-0111"):
+        self.clients = [ZhipuAI(api_key=api_key) for api_key in api_keys]
+        self.max_workers = max_workers
+        self.account_counts = len(self.clients)
+        for i in range(self.account_counts):
+            self.clients[i] = GLM4V(api_key=api_keys[i], model=model)
+
+    def prompt_one(self, image_path_or_url: str, prompt: str = "", need_json: bool = True, temperature: float = 0.9, is_url: bool = False) -> str:
+        import random
+        account_index = random.randint(0, self.account_counts - 1)
+        prompt_result = self.clients[account_index].prompt(image_path_or_url, prompt, need_json, temperature, is_url)
+        # json_path 是image_path_or_url的同名json文件路径
+
+        json_path = image_path_or_url.replace(".jpg", ".json").replace(".png", ".json").replace(".jpeg", ".json")
+        with open(json_path, "w") as f:
+            json.dump(prompt_result, f)
+        return prompt_result
+
+    def prompt_images(self, image_paths: List[str], prompt: str = "", need_json: bool = True, temperature: float = 0.9, is_url: bool = False) -> str:
+        # image_path_dict的键是图片位置，值是图片的描述
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            futures = [executor.submit(self.prompt_one, image_paths[i], prompt, need_json, temperature, is_url) for i in range(len(image_paths))]
+            results = [future.result() for future in concurrent.futures.as_completed(futures)]
+        return results
+
+
