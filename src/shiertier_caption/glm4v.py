@@ -4,6 +4,7 @@ import base64
 from .repair_json import try_parse_ast_to_json as repair_json
 import json
 import concurrent.futures
+import os
 
 class GLM4V:
     def __init__(self, api_key: str, model: str = "glm-4v-plus-0111"):
@@ -110,7 +111,7 @@ Please strictly follow the format below and output only JSON, do not output Pyth
                     messages=messages,
                     #response_format = {'type': 'json_object'},
                 )
-                old,new = self.try_parse_json_object(response.choices[0].message.content)
+                old,new = repair_json(response.choices[0].message.content)
                 return new
             else:
                 response = self.client.chat.completions.create(
@@ -135,12 +136,14 @@ class MultiGLM4V:
         import random
         account_index = random.randint(0, self.account_counts - 1)
         prompt_result = self.clients[account_index].prompt(image_path_or_url, prompt, need_json, temperature, is_url)
-        # json_path 是image_path_or_url的同名json文件路径
+        if prompt_result:
+            # json_path 是image_path_or_url的同名json文件路径
 
-        json_path = image_path_or_url.replace(".jpg", ".json").replace(".png", ".json").replace(".jpeg", ".json")
-        with open(json_path, "w") as f:
-            json.dump(prompt_result, f)
-        return prompt_result
+            json_path = image_path_or_url.replace(".jpg", ".json").replace(".png", ".json").replace(".jpeg", ".json").replace(".webp", ".json")
+            with open(json_path, "w") as f:
+                json.dump(prompt_result, f)
+            os.remove(image_path_or_url)
+            return prompt_result
 
     def prompt_images(self, image_paths: List[str], prompt: str = "", need_json: bool = True, temperature: float = 0.9, is_url: bool = False) -> str:
         # image_path_dict的键是图片位置，值是图片的描述
