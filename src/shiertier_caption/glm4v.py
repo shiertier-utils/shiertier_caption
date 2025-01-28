@@ -1,7 +1,7 @@
 from zhipuai import ZhipuAI
 from typing import Optional, Union, List
 import base64
-from repair_json import try_parse_ast_to_json as repair_json
+from .repair_json import try_parse_ast_to_json as repair_json
 import json
 import concurrent.futures
 
