@@ -133,10 +133,10 @@ class MultiGLM4V:
         for i in range(self.account_counts):
             self.clients[i] = GLM4V(api_key=api_keys[i], model=model)
 
-    def prompt_one(self, image_path_or_url: str, prompt: str = "", need_json: bool = True, temperature: float = 0.9, is_url: bool = False) -> str:
+    def prompt_one(self, image_path_or_url: str) -> str:
         import random
         account_index = random.randint(0, self.account_counts - 1)
-        prompt_result = self.clients[account_index].prompt(image_path_or_url, prompt, need_json, temperature, is_url)
+        prompt_result = self.clients[account_index].prompt(image_path_or_url)
         if prompt_result:
             # json_path 是image_path_or_url的同名json文件路径
 
@@ -146,11 +146,11 @@ class MultiGLM4V:
             os.remove(image_path_or_url)
             return prompt_result
 
-    def prompt_images(self, image_paths: List[str], prompt: str = "", need_json: bool = True, temperature: float = 0.9, is_url: bool = False) -> str:
+    def prompt_images(self, image_paths: List[str]) -> str:
         # image_path_dict的键是图片位置，值是图片的描述
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-            futures = [executor.submit(self.prompt_one, image_paths[i], prompt, need_json, temperature, is_url) for i in range(len(image_paths))]
+            futures = [executor.submit(self.prompt_one, image_paths[i]) for i in range(len(image_paths))]
             results = [future.result() for future in concurrent.futures.as_completed(futures)]
         return results
 
