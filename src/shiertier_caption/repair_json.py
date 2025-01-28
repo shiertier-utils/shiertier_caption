@@ -69,12 +69,15 @@ def try_parse_json_object(input: str) -> tuple[str, dict]:
     )
 
     # Remove JSON Markdown Frame
-    if input.startswith("```"):
-        input = input[len("```"):]
     if input.startswith("```json"):
         input = input[len("```json"):]
+    if input.startswith("```"):
+        input = input[len("```"):]
     if input.endswith("```"):
         input = input[: len(input) - len("```")]
+    # 特殊的，中间未知的"```"后仍有内容，直接移除
+    if "```" in input:
+        input = input[:input.index("```")]
 
     try:
         result = json.loads(input)

@@ -1,7 +1,10 @@
 from zhipuai import ZhipuAI
 from typing import Optional, Union, List
 import base64
-from .repair_json import try_parse_ast_to_json as repair_json
+try:
+    from .repair_json import try_parse_ast_to_json as repair_json
+except:
+    from repair_json import try_parse_ast_to_json as repair_json
 import json
 import concurrent.futures
 import os
@@ -78,51 +81,49 @@ Please strictly follow the format below and output only JSON, do not output Pyth
         if not prompt:
             prompt = self.default_prompt
         
-        try:
-            # 准备图片数据
-            if is_url:
-                image_data = {"url": image_path_or_url}
-            else:
-                # 读取本地图片并转换为base64
-                with open(image_path_or_url, 'rb') as img_file:
-                    img_base64 = base64.b64encode(img_file.read()).decode('utf-8')
-                image_data = {"url": img_base64}
 
-            # 构建请求消息
-            messages = [{
-                "role": "user",
-                "content": [
-                    {
-                        "type": "image_url",
-                        "image_url": image_data
-                    },
-                    {
-                        "type": "text",
-                        "text": prompt
-                    },
-                ],
-                "temperature": temperature
-            }]
-            # print(prompt)
-            # 发送请求
-            if need_json:
-                response = self.client.chat.completions.create(
-                    model=self.model,
-                    messages=messages,
-                    #response_format = {'type': 'json_object'},
-                )
-                old,new = repair_json(response.choices[0].message.content)
-                return new
-            else:
-                response = self.client.chat.completions.create(
-                    model=self.model,
-                    messages=messages
-                )
+        # 准备图片数据
+        if is_url:
+            image_data = {"url": image_path_or_url}
+        else:
+            # 读取本地图片并转换为base64
+            with open(image_path_or_url, 'rb') as img_file:
+                img_base64 = base64.b64encode(img_file.read()).decode('utf-8')
+            image_data = {"url": img_base64}
 
-                return response.choices[0].message.content
+        # 构建请求消息
+        messages = [{
+            "role": "user",
+            "content": [
+                {
+                    "type": "image_url",
+                    "image_url": image_data
+                },
+                {
+                    "type": "text",
+                    "text": prompt
+                },
+            ],
+            "temperature": temperature
+        }]
+        # print(prompt)
+        # 发送请求
+        if need_json:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                #response_format = {'type': 'json_object'},
+            )
+            old,new = repair_json(response.choices[0].message.content)
+            return new
+        else:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages
+            )
 
-        except Exception as e:
-            return f"错误：{str(e)}" 
+            return response.choices[0].message.content
+
 
 class MultiGLM4V:
     def __init__(self, api_keys: list[str], max_workers: int = 64, model: str = "glm-4v-plus-0111"):
@@ -152,3 +153,8 @@ class MultiGLM4V:
             futures = [executor.submit(self.prompt_one, image_paths[i], prompt, need_json, temperature, is_url) for i in range(len(image_paths))]
             results = [future.result() for future in concurrent.futures.as_completed(futures)]
         return results
+
+
+client = GLM4V(api_key="a9976685dbf947d9a620738ee33a18b5.RQFSb0AV6wDVk2S1")
+r = client.prompt(r"C:\Users\jie\Pictures\QQ图片20241201021238.jpg")
+print(r)
