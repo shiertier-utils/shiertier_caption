@@ -1,7 +1,7 @@
 from zhipuai import ZhipuAI
 from typing import Optional, Union, List
 import base64
-from .repair_json import try_parse_ast_to_json as repair_json
+from repair_json import try_parse_ast_to_json as repair_json
 import json
 import concurrent.futures
 
@@ -102,20 +102,22 @@ Please strictly follow the format below and output only JSON, do not output Pyth
                 ],
                 "temperature": temperature
             }]
-
+            print(prompt)
             # 发送请求
             if need_json:
                 response = self.client.chat.completions.create(
                     model=self.model,
                     messages=messages,
-                    response_format = {'type': 'json_object'},
+                    #response_format = {'type': 'json_object'},
                 )
-                return repair_json(response.choices[0].message.content)
+                old,new = self.try_parse_json_object(response.choices[0].message.content)
+                return new
             else:
                 response = self.client.chat.completions.create(
                     model=self.model,
                     messages=messages
                 )
+
                 return response.choices[0].message.content
 
         except Exception as e:
@@ -147,5 +149,3 @@ class MultiGLM4V:
             futures = [executor.submit(self.prompt_one, image_paths[i], prompt, need_json, temperature, is_url) for i in range(len(image_paths))]
             results = [future.result() for future in concurrent.futures.as_completed(futures)]
         return results
-
-

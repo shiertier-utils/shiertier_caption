@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "shiertier_caption"
-version = "0.2.6"
+version = "0.2.7"
 description = "一个使用智谱AI GLM4V-Plus模型进行图片描述的Python包"
 readme = "README.md"
 authors = [{ name = "shiertier", email = "junjietext@gmail.com" }]
