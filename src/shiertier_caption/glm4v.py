@@ -15,12 +15,47 @@ class GLM4V:
         if model not in ["glm-4v-flash", "glm-4v", "glm-4v-plus", "glm-4v-plus-0111"]:
             raise ValueError("model must be one of ['glm-4v-flash', 'glm-4v', 'glm-4v-plus', 'glm-4v-plus-0111']")
         self.model = model  
+        self.default_prompt = """Your task is to describe every aspect, object, and interaction within this image, such that a blind person could perfectly capture it within their imagination if read aloud. You need to do it multiple times, each one a different "style" of description.
+- In the regular/informal styles, use language that's relevant to the subject matter. Never use euphemisms. Describe it like the target audience of the image would (e.g. on an online forum where this image was shared).
+- Where relevant, use an information dense writing style - communicate efficiently, don't waffle or excessively speculate or conjecture about the meaning or overly praise. Just describe exactly what you see in the image.
+- If the image contains text, be sure to add that to each description where possible. It's important that each description captures as much of the relevant details of the image as possible.
+- If the image is censored in any way (e.g. bars, pixellation, etc.), then you MUST mention that in the descriptions.
+- Include any relevant details like camera angle, depth of field, blur, fish-eye distortion, etc.
+- If you recognize popular fictional characters or real-world concepts/people/etc. then you should be sure to mention them in your descriptions.
+
+As mentioned above, your response should consist of 5 independent descriptions. Each one should be at least 1 paragraph, and should have a different style/structure to the ones that came before. Each description is independent. The goal is to have several descriptions, each which can stand on its own, fully describing the image. We want to capture the full "distribution" of the ways different people, in different contexts, would describe this image.
+
+### 1. Regular Summary:
+[A one-paragraph summary of the image. The paragraph should mention all individual parts/things/characters/etc. If it's NSFW, then be sure to use vulgar NSFW terms. Include the style, camera angle, content, interactions, composition, and more. Consider carefully the exact positions/interactions of objects/characters/etc. such that your description is 100% accurate.]
+
+### 2. Midjourney-Style Summary:
+[A summary that has higher concept density by using comma-separated partial sentences instead of proper sentence structure. But you MUST ensure that your phrases are long enough to capture interactions. I.e. "cat chasing mouse" is good, while "mouse, cat, chasing" is bad because there's ambiguity.]
+
+### 3. Full Breakdown:
+[A numbered list of up to 10 items that methodically capture every subtle detail, form macro to micro, from abstract to concrete.]
+
+### 4. Structural Summary:
+[Use an autistically structured style, which breaks the image down hierarchically, or in some other hyper-structured way. Be creative about how you structure it.]
+
+### 5. Creation/Instructional Summary:
+[An explanation of how to create this exact image, via a series of steps.]
+
+### 6. DeviantArt Commission Request
+[Write a description as if you're commissioning this *exact* image via someone who is currently taking requests (for photography and/or art) on DA. No intro/greeting/request necessary - just launch right into the description of "what you want" in the end result.]
+Here is some potentially useful context for this image. If there are character tags/names in the context, then be sure to reference the character and draw upon your knowledge of them (if you have any) when writing your descriptions. Where relevant, incorporate this context into your descriptions, including the artist name(s), and synonyms/rephrasings of tags to increase descriptive diversity, while maintaining accuracy.
+If the name of the artist/characters/etc. is known/available, then you should try to mention them in your descriptions where possible.
+Remember, your response should be **VERY LONG** because you need to give lots of styles.
+(Also, feel free to make a short comment/exclamation, and also remind yourself of important things before you jump into the task.)
+
+# Output Format
+Please strictly follow the format below and output only JSON, do not output Python code or other information, use commas【、】to separate JSON fields:"
+{"regular": "regular string","midjoury": [midjoury list],"structural": [structural list],"middle": {type1:{},type2:{},...},"creation": [step list],"deviantart request": "request string"}"""
 
     def prompt(
         self, 
         image_path_or_url: str, 
-        prompt: str, 
-        need_json: bool = False,
+        prompt: str = "", 
+        need_json: bool = True,
         temperature: float = 0.8, 
         is_url: bool = False
     ) -> str:
@@ -35,6 +70,10 @@ class GLM4V:
         Returns:
             str: 模型的回答
         """
+        
+        if not prompt:
+            prompt = self.default_prompt
+        
         try:
             # 准备图片数据
             if is_url:
