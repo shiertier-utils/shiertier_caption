@@ -154,7 +154,7 @@ class MultiGLM4V:
             results = [future.result() for future in concurrent.futures.as_completed(futures)]
         return results
 
-
-client = GLM4V(api_key="a9976685dbf947d9a620738ee33a18b5.RQFSb0AV6wDVk2S1")
-r = client.prompt(r"C:\Users\jie\Pictures\QQ图片20241201021238.jpg")
-print(r)
+if __name__ == "__main__":
+    client = GLM4V(api_key="a9976685dbf947d9a620738ee33a18b5.RQFSb0AV6wDVk2S1")
+    r = client.prompt(r"C:\Users\jie\Pictures\QQ图片20241201021238.jpg")
+    print(r)
