@@ -115,7 +115,7 @@ Please strictly follow the format below and output only JSON, do not output Pyth
                 #response_format = {'type': 'json_object'},
             )
             response_content = response.choices[0].message.content
-            print(response_content)
+            #print(response_content)
             old,new = repair_json(response_content)
             return new
         else:
