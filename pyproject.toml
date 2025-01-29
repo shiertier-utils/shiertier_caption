@@ -25,6 +25,7 @@ dependencies = [
     "json_repair",
     "typed-ast",
     "tqdm",
+    "hfpics"
 ]
 requires-python = ">=3.7"
 
