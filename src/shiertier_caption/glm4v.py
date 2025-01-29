@@ -156,7 +156,12 @@ class MultiGLM4V:
             results = [future.result() for future in concurrent.futures.as_completed(futures)]
         return results
 
-if __name__ == "__main__":
-    client = GLM4V(api_key="a9976685dbf947d9a620738ee33a18b5.RQFSb0AV6wDVk2S1")
-    r = client.prompt(r"C:\Users\jie\Pictures\QQ图片20241201021238.jpg")
-    print(r)
+    def prompt_folder(self, folder_path: str) -> str:
+        # 遍历文件夹中的所有图片，移除有同名json文件的图片并调用prompt_images
+        image_paths = []
+        for file in os.listdir(folder_path):
+            if file.endswith(".jpg") or file.endswith(".png") or file.endswith(".jpeg") or file.endswith(".webp"):
+                json_path = file.replace(".jpg", ".json").replace(".png", ".json").replace(".jpeg", ".json").replace(".webp", ".json")
+                if not os.path.exists(json_path):
+                    image_paths.append(os.path.join(folder_path, file))
+        return self.prompt_images(image_paths)
