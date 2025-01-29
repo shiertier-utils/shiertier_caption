@@ -8,6 +8,7 @@ except:
 import json
 import concurrent.futures
 import os
+from tqdm import tqdm
 
 
 def convert_str_to_list(input: str) -> list:
@@ -120,11 +121,18 @@ Please strictly follow the format below and output only JSON, do not output Pyth
         # print(prompt)
         # 发送请求
         if need_json:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=messages,
-                #response_format = {'type': 'json_object'},
-            )
+            try:
+                response = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    #response_format = {'type': 'json_object'},
+                )
+            except Exception as e:
+                if '1301' in str(e):
+                    print("nsfw pic")
+                    return {"nsfw": True}
+                else:
+                    raise e
             response_content = response.choices[0].message.content
             #print(response_content)
             old,new = repair_json(response_content)
@@ -166,10 +174,80 @@ class MultiGLM4V:
 
     def prompt_images(self, image_paths: List[str]) -> str:
         # image_path_dict的键是图片位置，值是图片的描述
-
+        results = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             futures = [executor.submit(self.prompt_one, image_paths[i]) for i in range(len(image_paths))]
-            results = [future.result() for future in concurrent.futures.as_completed(futures)]
+            for future in tqdm(concurrent.futures.as_completed(futures), 
+                             total=len(futures), 
+                             desc="处理图片中"):
+                results.append(future.result())
+        return results
+
+    def prompt_folder(self, folder_path: str) -> str:
+        # 遍历文件夹中的所有图片，移除有同名json文件的图片并调用prompt_images
+        image_paths = []
+        for file in os.listdir(folder_path):
+            if file.endswith(".jpg") or file.endswith(".png") or file.endswith(".jpeg") or file.endswith(".webp"):
+                json_path = file.replace(".jpg", ".json").replace(".png", ".json").replace(".jpeg", ".json").replace(".webp", ".json")
+                if not os.path.exists(json_path):
+                    image_paths.append(os.path.join(folder_path, file))
+        return self.prompt_images(image_paths)
+
+
+class MultiGLM4V_Mongo:
+    def __init__(self, api_keys: list[str] | str, mongo_url: str, max_workers: int = 64, model: str = "glm-4v-plus-0111"):
+        self.mongo_init(mongo_url)
+        if isinstance(api_keys, str):
+            if '\n' in api_keys:
+                api_keys = convert_str_to_list(api_keys)
+            else:
+                api_keys = [api_keys]
+        self.clients = [ZhipuAI(api_key=api_key) for api_key in api_keys]
+        self.max_workers = max_workers
+        self.account_counts = len(self.clients)
+        for i in range(self.account_counts):
+            self.clients[i] = GLM4V(api_key=api_keys[i], model=model)
+
+    def mongo_init(self, mongo_url: str):
+        from pymongo import MongoClient
+        mongo_client = MongoClient(mongo_url)
+        art_db = mongo_client.get_database("art")
+        self.caption_collection = art_db.get_collection("caption")
+        self.tasks = list(self.caption_collection.find({'status': 0}).limit(100))
+
+    def get_pic(self, task_id: int) -> str:
+        from hfpics import HfPics
+        # 或使用自定义配置
+        hf = HfPics(
+            repo="picollect/a_1024",  # 自定义数据集仓库
+            cache_dir="/kaggle/working/pics"   # 自定义缓存目录
+        )
+        return hf.pic(task_id)
+
+    def prompt_one(self, task_id: int) -> str:
+        import random
+        account_index = random.randint(0, self.account_counts - 1)
+        prompt_result = self.clients[account_index].prompt(self.get_pic(task_id))
+        if prompt_result:
+            result = {}
+            for k,v in prompt_result.items():
+                if k == 'nsfw':
+                    status = 403
+                    self.caption_collection.update_one({'_id': task_id}, {'$set': {'status': status}}, upsert=True)
+                    return
+                result[k] = v
+            result['status'] = 200
+            self.caption_collection.update_one({'_id': task_id}, {'$set': result}, upsert=True)
+
+    def prompt_images(self) -> str:
+        # image_path_dict的键是图片位置，值是图片的描述
+        results = []
+        with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            futures = [executor.submit(self.prompt_one, task['_id']) for task in self.tasks]
+            for future in tqdm(concurrent.futures.as_completed(futures), 
+                             total=len(futures), 
+                             desc="处理图片中"):
+                results.append(future.result())
         return results
 
     def prompt_folder(self, folder_path: str) -> str:

@@ -23,7 +23,8 @@ keywords = ["zhipuai", "glm4v", "shiertier_caption", "image", "ai"]
 dependencies = [
     "zhipuai>=1.0.0",
     "json_repair",
-    "typed-ast"
+    "typed-ast",
+    "tqdm",
 ]
 requires-python = ">=3.7"
 
