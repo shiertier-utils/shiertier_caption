@@ -9,6 +9,17 @@ import json
 import concurrent.futures
 import os
 
+
+def convert_str_to_list(input: str) -> list:
+    # 将输入字符串转换为列表，列表中的元素是字符串
+    result = input.split("\n")
+    result = [i.strip() for i in result]
+    result_list = []
+    for i in result:
+        if i:
+            result_list.append(i)
+    return result_list
+
 class GLM4V:
     def __init__(self, api_key: str, model: str = "glm-4v-plus-0111"):
         """
@@ -128,7 +139,12 @@ Please strictly follow the format below and output only JSON, do not output Pyth
 
 
 class MultiGLM4V:
-    def __init__(self, api_keys: list[str], max_workers: int = 64, model: str = "glm-4v-plus-0111"):
+    def __init__(self, api_keys: list[str] | str, max_workers: int = 64, model: str = "glm-4v-plus-0111"):
+        if isinstance(api_keys, str):
+            if '\n' in api_keys:
+                api_keys = convert_str_to_list(api_keys)
+            else:
+                api_keys = [api_keys]
         self.clients = [ZhipuAI(api_key=api_key) for api_key in api_keys]
         self.max_workers = max_workers
         self.account_counts = len(self.clients)
