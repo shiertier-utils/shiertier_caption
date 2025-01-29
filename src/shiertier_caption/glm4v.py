@@ -201,7 +201,7 @@ class MultiGLM4V:
 class MultiGLM4V_Mongo:
     def __init__(self, api_keys: list[str] | str, mongo_url: str, max_workers: int = 64, model: str = "glm-4v-plus-0111"):
         self.mongo_init(mongo_url)
-        api_keys = self.get_account(api_keys)
+        api_keys = self.get_accounts(api_keys)
         self.clients = [ZhipuAI(api_key=api_key) for api_key in api_keys]
         self.max_workers = max_workers
         self.account_counts = len(self.clients)
