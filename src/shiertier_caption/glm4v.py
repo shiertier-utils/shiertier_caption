@@ -135,8 +135,12 @@ Please strictly follow the format below and output only JSON, do not output Pyth
                     raise e
             response_content = response.choices[0].message.content
             #print(response_content)
-            old,new = repair_json(response_content)
-            return new
+            try:
+                old,new = repair_json(response_content)
+                return new
+            except Exception as e:
+                print(e)
+                return {"error": True}
         else:
             response = self.client.chat.completions.create(
                 model=self.model,
@@ -213,6 +217,8 @@ class MultiGLM4V_Mongo:
         mongo_client = MongoClient(mongo_url)
         art_db = mongo_client.get_database("art")
         self.caption_collection = art_db.get_collection("caption")
+
+    def get_tasks(self) -> dict:
         self.tasks = list(self.caption_collection.find({'status': 0}).limit(100))
 
     def get_pic(self, task_id: int) -> str:
@@ -235,11 +241,16 @@ class MultiGLM4V_Mongo:
                     status = 403
                     self.caption_collection.update_one({'_id': task_id}, {'$set': {'status': status}}, upsert=True)
                     return
+                if k == 'error':
+                    status = 500
+                    self.caption_collection.update_one({'_id': task_id}, {'$set': {'status': status}}, upsert=True)
+                    return
                 result[k] = v
             result['status'] = 200
             self.caption_collection.update_one({'_id': task_id}, {'$set': result}, upsert=True)
 
     def prompt_images(self) -> str:
+        self.get_tasks()
         # image_path_dict的键是图片位置，值是图片的描述
         results = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
@@ -249,13 +260,3 @@ class MultiGLM4V_Mongo:
                              desc="处理图片中"):
                 results.append(future.result())
         return results
-
-    def prompt_folder(self, folder_path: str) -> str:
-        # 遍历文件夹中的所有图片，移除有同名json文件的图片并调用prompt_images
-        image_paths = []
-        for file in os.listdir(folder_path):
-            if file.endswith(".jpg") or file.endswith(".png") or file.endswith(".jpeg") or file.endswith(".webp"):
-                json_path = file.replace(".jpg", ".json").replace(".png", ".json").replace(".jpeg", ".json").replace(".webp", ".json")
-                if not os.path.exists(json_path):
-                    image_paths.append(os.path.join(folder_path, file))
-        return self.prompt_images(image_paths)
