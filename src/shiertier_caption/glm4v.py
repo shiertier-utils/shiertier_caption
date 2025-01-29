@@ -2,9 +2,9 @@ from zhipuai import ZhipuAI
 from typing import Optional, Union, List
 import base64
 try:
-    from .repair_json import try_parse_ast_to_json as repair_json
+    from .repair_json import try_parse_json_object as repair_json
 except:
-    from repair_json import try_parse_ast_to_json as repair_json
+    from repair_json import try_parse_json_object as repair_json
 import json
 import concurrent.futures
 import os
@@ -114,7 +114,9 @@ Please strictly follow the format below and output only JSON, do not output Pyth
                 messages=messages,
                 #response_format = {'type': 'json_object'},
             )
-            old,new = repair_json(response.choices[0].message.content)
+            response_content = response.choices[0].message.content
+            print(response_content)
+            old,new = repair_json(response_content)
             return new
         else:
             response = self.client.chat.completions.create(

@@ -103,3 +103,59 @@ def try_parse_json_object(input: str) -> tuple[str, dict]:
             return json_info, result
     else:
         return input, result
+
+if __name__ == "__main__":
+    test = """```json
+{
+  "regular": "This image depicts an anime-style character with long, flowing pink hair, wearing a detailed outfit with floral elements. The character is surrounded by various objects, including a lantern, flowers, and candles. The background is dark, with a starry sky visible through a window. The character appears to be in a dreamlike or magical setting, with a serene expression on their face. The overall style is highly detailed and colorful, with a focus on fantasy elements.",
+  "midjoury": [
+    "Anime character, long pink hair, detailed outfit, floral elements, lantern, flowers, candles, dark background, starry sky, window, dreamlike setting, serene expression, highly detailed, colorful, fantasy elements."
+  ],
+  "structural": [
+    {
+      "background": "Dark with a starry sky visible through a window"
+    },
+    {
+      "character": "Anime-style with long pink hair and a detailed outfit"
+    },
+    {
+      "objects": "Lantern, flowers, candles"
+    },
+    {
+      "setting": "Dreamlike or magical"
+    },
+    {
+      "expression": "Serene"
+    },
+    {
+      "style": "Highly detailed and colorful"
+    },
+    {
+      "theme": "Fantasy"
+    }
+  ],
+  "middle": {
+    "type1": {
+      "character": "Anime-style with long pink hair and a detailed outfit"
+    },
+    "type2": {
+      "objects": "Lantern, flowers, candles"
+    },
+    "type3": {
+      "setting": "Dreamlike or magical"
+    }
+  },
+  "creation": [
+    "Start with a dark background and add a starry sky visible through a window",
+    "Create an anime-style character with long pink hair and a detailed outfit",
+    "Add floral elements to the character's outfit",
+    "Place the character in a dreamlike or magical setting",
+    "Add a lantern, flowers, and candles around the character",
+    "Ensure the character has a serene expression",
+    "Use highly detailed and colorful art style",
+    "Incorporate fantasy elements throughout the image"
+  ],
+  "deviantart request": "I would like a commission of an anime-style character with long pink hair and a detailed outfit, surrounded by a lantern, flowers, and candles. The background should be dark with a starry sky visible through a window. The character should have a serene expression and be placed in a dreamlike or magical setting. The art style should be highly detailed and colorful, with a focus on fantasy elements."
+}
+```"""
+    print(try_parse_json_object(test))
