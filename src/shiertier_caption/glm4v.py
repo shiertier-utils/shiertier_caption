@@ -201,16 +201,20 @@ class MultiGLM4V:
 class MultiGLM4V_Mongo:
     def __init__(self, api_keys: list[str] | str, mongo_url: str, max_workers: int = 64, model: str = "glm-4v-plus-0111"):
         self.mongo_init(mongo_url)
-        if isinstance(api_keys, str):
-            if '\n' in api_keys:
-                api_keys = convert_str_to_list(api_keys)
-            else:
-                api_keys = [api_keys]
+        api_keys = self.get_account(api_keys)
         self.clients = [ZhipuAI(api_key=api_key) for api_key in api_keys]
         self.max_workers = max_workers
         self.account_counts = len(self.clients)
         for i in range(self.account_counts):
             self.clients[i] = GLM4V(api_key=api_keys[i], model=model)
+
+    def get_accounts(self, api_keys: int):
+        if isinstance(api_keys, str):
+            if '\n' in api_keys:
+                api_keys = convert_str_to_list(api_keys)
+            else:
+                api_keys = [api_keys]
+        return api_keys
 
     def mongo_init(self, mongo_url: str):
         from pymongo import MongoClient
@@ -219,7 +223,10 @@ class MultiGLM4V_Mongo:
         self.caption_collection = art_db.get_collection("caption")
 
     def get_tasks(self) -> dict:
-        self.tasks = list(self.caption_collection.find({'status': 0}).limit(100))
+        self.tasks = list(self.caption_collection.aggregate([
+            {"$match": {"status": 0}},  # 匹配未处理的文档
+            {"$sample": {"size": 100}}  # 随机获取100个文档
+        ]))
 
     def get_pic(self, task_id: int) -> str:
         from hfpics import HfPics
