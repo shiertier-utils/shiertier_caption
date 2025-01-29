@@ -155,8 +155,3 @@ class MultiGLM4V:
             futures = [executor.submit(self.prompt_one, image_paths[i]) for i in range(len(image_paths))]
             results = [future.result() for future in concurrent.futures.as_completed(futures)]
         return results
-
-if __name__ == "__main__":
-    client = GLM4V(api_key="a9976685dbf947d9a620738ee33a18b5.RQFSb0AV6wDVk2S1")
-    r = client.prompt(r"C:\Users\jie\Pictures\QQ图片20241201021238.jpg")
-    print(r)
