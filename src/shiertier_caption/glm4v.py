@@ -9,6 +9,7 @@ import json
 import concurrent.futures
 import os
 from tqdm import tqdm
+import time
 
 
 def convert_str_to_list(input: str) -> list:
@@ -131,6 +132,10 @@ Please strictly follow the format below and output only JSON, do not output Pyth
                 if '1301' in str(e):
                     print("nsfw pic")
                     return {"nsfw": True}
+                elif '1305' in str(e):
+                    print("服务器当前压力大，等待300s再次尝试")
+                    time.sleep(300)
+                    return self.prompt(image_path_or_url, prompt, need_json, temperature, is_url)
                 else:
                     raise e
             response_content = response.choices[0].message.content
