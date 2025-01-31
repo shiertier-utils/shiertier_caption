@@ -237,7 +237,7 @@ class MultiGLM4V_Mongo:
         from hfpics import HfPics
         # 或使用自定义配置
         hf = HfPics(
-            repo="picollect/a_1024",  # 自定义数据集仓库
+            repo="picollect/armwm",  # 自定义数据集仓库
             cache_dir="/kaggle/working/pics"   # 自定义缓存目录
         )
         return hf.pic(task_id)
