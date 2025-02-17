@@ -26,7 +26,7 @@ class GLM4V:
     def __init__(self, api_key: str, model: str = "glm-4v-plus-0111"):
         """
         初始化 GLM4V-Flash 客户端
-        
+
         Args:
             api_key (str): 智谱 AI 的 API key
             model (str): 模型名称，默认为 "glm-4v-plus-0111"
@@ -34,7 +34,7 @@ class GLM4V:
         self.client = ZhipuAI(api_key=api_key)
         if model not in ["glm-4v-flash", "glm-4v", "glm-4v-plus", "glm-4v-plus-0111"]:
             raise ValueError("model must be one of ['glm-4v-flash', 'glm-4v', 'glm-4v-plus', 'glm-4v-plus-0111']")
-        self.model = model  
+        self.model = model
         self.default_prompt = """Your task is to describe every aspect, object, and interaction within this image, such that a blind person could perfectly capture it within their imagination if read aloud. You need to do it multiple times, each one a different "style" of description.
 - In the regular/informal styles, use language that's relevant to the subject matter. Never use euphemisms. Describe it like the target audience of the image would (e.g. on an online forum where this image was shared).
 - Where relevant, use an information dense writing style - communicate efficiently, don't waffle or excessively speculate or conjecture about the meaning or overly praise. Just describe exactly what you see in the image.
@@ -72,28 +72,28 @@ Please strictly follow the format below and output only JSON, do not output Pyth
 {"regular": "regular string","midjoury": [midjoury list],"structural": [structural list],"middle": {type1:{},type2:{},...},"creation": [step list],"deviantart request": "request string"}"""
 
     def prompt(
-        self, 
-        image_path_or_url: str, 
-        prompt: str = "", 
+        self,
+        image_path_or_url: str,
+        prompt: str = "",
         need_json: bool = True,
-        temperature: float = 0.8, 
+        temperature: float = 0.8,
         is_url: bool = False
     ) -> str:
         """
         对图片进行提问并获取回答
-        
+
         Args:
             image_path_or_url (str): 图片的本地路径或URL
             prompt (str): 关于图片的提问
             is_url (bool): 是否为URL链接，默认为False（即本地文件）
-        
+
         Returns:
             str: 模型的回答
         """
-        
+
         if not prompt:
             prompt = self.default_prompt
-        
+
 
         # 准备图片数据
         if is_url:
@@ -186,8 +186,8 @@ class MultiGLM4V:
         results = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             futures = [executor.submit(self.prompt_one, image_paths[i]) for i in range(len(image_paths))]
-            for future in tqdm(concurrent.futures.as_completed(futures), 
-                             total=len(futures), 
+            for future in tqdm(concurrent.futures.as_completed(futures),
+                             total=len(futures),
                              desc="处理图片中"):
                 results.append(future.result())
         return results
@@ -267,8 +267,8 @@ class MultiGLM4V_Mongo:
         results = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             futures = [executor.submit(self.prompt_one, task['_id']) for task in self.tasks]
-            for future in tqdm(concurrent.futures.as_completed(futures), 
-                             total=len(futures), 
+            for future in tqdm(concurrent.futures.as_completed(futures),
+                             total=len(futures),
                              desc="处理图片中"):
                 results.append(future.result())
         return results

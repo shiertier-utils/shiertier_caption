@@ -96,10 +96,10 @@ GLM4V(api_key: str, model: str = "glm-4v-plus-0111")
 
 ```python
 prompt(
-    image_path_or_url: str, 
-    prompt: str = "", 
+    image_path_or_url: str,
+    prompt: str = "",
     need_json: bool = True,
-    temperature: float = 0.8, 
+    temperature: float = 0.8,
     is_url: bool = False
 ) -> str
 ```
@@ -132,12 +132,28 @@ MultiGLM4V(api_keys: Union[List[str], str], max_workers: int = 64, model: str = 
 MultiGLM4V_Mongo(api_keys: Union[List[str], str], mongo_url: str, max_workers: int = 64, model: str = "glm-4v-plus-0111")
 ```
 
+### SiliconFlow类
+
+```python
+from shiertier_caption import SiliconFlow
+s = SiliconFlow(api_key: str, model: str = "Qwen/Qwen2-VL-72B-Instruct")
+
+s.prompt(
+    image_path_or_url: str,
+    prompt: str = "",
+    is_url: bool = False
+) -> str
+
+```
+
 参数:
-- `api_keys`: API密钥列表或包含多个密钥的字符串
-- `mongo_url`: MongoDB连接URL
-- `max_workers`: 最大并行工作线程数
+- `api_key`: 硅基流动的API密钥
 - `model`: 使用的模型名称
+
+
+
+
 
 ## 许可证
 
-MIT License 
+MIT License
